@@ -1,5 +1,6 @@
 package com.example.embedded_smarthome;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.TimePickerDialog;
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     MyLoadingButton myLoadingButton1, myLoadingButton2;
     boolean isLED_open = false;
     boolean isDoor_open = false;
-
+    boolean isAlert_5 = false, isAlert_6 = false, isAlert_7 = false;
     MaterialDialog.Builder builder;
     MaterialDialog dialog;
     MaterialDialog.Builder builder_init;
@@ -82,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
                     }, theTime);
                 } else {
                     handler.removeCallbacksAndMessages(null);
-
                     Log.d("TEST", "remove ");
                 }
             }
@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                         myLoadingButton2.showErrorButton();
                     }
                 }
-            }, 7000);
+            }, 7500);
         }
         else{
             sendDataMQTT("sonnguyen19/feeds/nutnhan2", "1");
@@ -212,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
                         myLoadingButton2.showErrorButton();
                     }
                 }
-            }, 7000);
+            }, 7500);
         }
     }
     public void sendDataMQTT(String topic, String value){
@@ -253,42 +253,72 @@ public class MainActivity extends AppCompatActivity {
                     txtHumi.setText((message.toString() + "%"));
                 }else if (topic.contains("canhbao")){
                     if(message.toString().equals("5")) {
-                        builder.content("Phát hiện nhiệt độ cao!");
-                        builder.negativeText(isDoor_open? "": "MỞ CỬA");
-                        builder.onNegative(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(MaterialDialog dialog, DialogAction which) {
-                                // TODO
-                                isDoor_open = false;
-                                process_door();
-                            }
-                        });
+                        builder.content("Phát hiện nhiệt độ cao!")
+                                .negativeText(isDoor_open? "": "MỞ CỬA")
+                                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                        isAlert_5 = false;
+                                        Log.d("TEST", "isAlert_popup: " + isAlert_5);
+                                    }
+                                })
+                                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(MaterialDialog dialog, DialogAction which) {
+                                        // TODO
+                                        isDoor_open = false;
+                                        process_door();
+                                    }
+                                });
                         dialog = builder.build();
-                        dialog.show();
+                        if(!isAlert_5) {
+                            isAlert_5 = true;
+                            dialog.show();
+
+                        }
 
                     }
                     else if(message.toString().equals("6")) {
-                        builder.content("Phát hiện vật cản!");
-                        builder.negativeText("");
+                        builder.content("Phát hiện vật cản!")
+                                .negativeText("")
+                                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                        isAlert_6 = false;
+                                        Log.d("TEST", "isAlert_popup: " + isAlert_6);
+                                    }
+                                });
                         dialog = builder.build();
-
-                        dialog.show();
+                        if(!isAlert_6) {
+                            isAlert_6 = true;
+                            dialog.show();
+                        }
 
                     }
                     else if(message.toString().equals("7")) {
-                        builder.content("Phát hiện trời mưa!");
-                        builder.negativeText(isDoor_open? "ĐÓNG CỬA": "");
-                        builder.onNegative(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(MaterialDialog dialog, DialogAction which) {
-                                // TODO
-                                isDoor_open = true;
-                                process_door();
-                            }
-                        });
+                        builder.content("Phát hiện trời mưa!")
+                                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                        isAlert_5 = false;
+                                        Log.d("TEST", "isAlert_popup: " + isAlert_7);
+                                    }
+                                })
+                                .negativeText(isDoor_open? "ĐÓNG CỬA": "")
+                                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(MaterialDialog dialog, DialogAction which) {
+                                        // TODO
+                                        isDoor_open = true;
+                                        process_door();
+                                    }
+                                });
                         dialog = builder.build();
-                        dialog.show();
+                        if(!isAlert_7) {
 
+                            isAlert_7 = true;
+                            dialog.show();
+                        }
                     }
                 }else if (topic.contains("res")){
                     if(message.toString().equals("11")) {
